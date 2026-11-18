@@ -14,5 +14,5 @@ exec ${PY:-python} -m vllm.entrypoints.openai.api_server \
   --no-enable-prefix-caching --enable-chunked-prefill \
   --mamba-ssm-cache-dtype float32 --generation-config auto \
   --enable-auto-tool-choice --tool-call-parser qwen3_coder --reasoning-parser qwen3 \
-  --gpu-memory-utilization 0.92 \
+  --gpu-memory-utilization 0.92 --attention-backend FLASHINFER \
   --speculative-config '{"method":"mtp","num_speculative_tokens":2,"draft_lm_head_quantization":"nvfp4","use_local_argmax_reduction":true}'

@@ -21,6 +21,18 @@ Decode throughput measured on a "wish coding" workload (writing code and web pag
 
 GSM8K, first 200 questions (greedy, thinking off): BF16 189/200, FP8 189/200.
 
+### Long context: use FlashInfer
+
+With the default FlashAttention 2 backend, decode speed collapses as context grows. At batch size 1, FA2 decode does not split the KV cache, so only 8 attention heads per GPU keep the SMs busy. `serve.sh` therefore passes `--attention-backend FLASHINFER`. Decode tok/s by context length, measured with a real-code corpus:
+
+| Context | FA2 | FlashInfer | Triton |
+|---|---|---|---|
+| 1k | 133.1 | 123.5 | 146.7 |
+| 32k | 55.3 | 113.8 | 112.8 |
+| 97k | 25.3 | **101.6** | 82.6 |
+
+The cost is short context: the wish workload drops from 121.8 to 108.2 tok/s. FP8 + FlashInfer scores 188/200 on GSM8K. Agent sessions easily reach tens of thousands of tokens, so FlashInfer wins overall.
+
 ## Usage
 
 ```bash

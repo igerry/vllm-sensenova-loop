@@ -23,6 +23,18 @@ Patches that make SenseNova-Loop-9B run fast on stock vLLM 0.33 with 2× RTX 309
 
 GSM8K 前 200 题（贪心解码，关闭思考）：BF16 是 189/200，FP8 也是 189/200。
 
+### 长上下文要用 FlashInfer
+
+默认的 FlashAttention 2 后端在上下文变长后，decode 会慢得很厉害：批大小为 1 时，FA2 的 decode 不会把 KV cache 拆成多段并行，每张卡只有 8 个注意力头，能用上的 SM 很少。所以 `serve.sh` 里加了 `--attention-backend FLASHINFER`。下表是用真实代码语料测出的 decode 速度（词元/秒）：
+
+| 上下文 | FA2 | FlashInfer | Triton |
+|---|---|---|---|
+| 1 千 | 133.1 | 123.5 | 146.7 |
+| 3.2 万 | 55.3 | 113.8 | 112.8 |
+| 9.7 万 | 25.3 | **101.6** | 82.6 |
+
+代价是短上下文会慢一些：许愿场景的速度从 121.8 降到 108.2。换成 FP8 + FlashInfer 后，GSM8K 是 188/200。智能体会话很容易累积到几万词元，所以整体上 FlashInfer 更划算。
+
 ## 用法
 
 ```bash
