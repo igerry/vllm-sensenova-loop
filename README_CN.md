@@ -58,7 +58,7 @@ PY=/path/to/venv/bin/python ./serve.sh /models/SenseNova-Loop-9B-mtp
 
 ## 工具
 
-- `tools/export_fp8.py`：把 BF16 导出成离线 FP8 权重，算法与 `--quantization fp8` 在线量化相同，每层一个缩放系数。视觉编码器、词嵌入和 lm_head 保持 BF16。
+- `tools/export_fp8.py`：把 BF16 导出成离线 FP8 权重（已发布在 [igerry/SenseNova-Loop-9B-FP8](https://huggingface.co/igerry/SenseNova-Loop-9B-FP8)，启动时用 `QUANT= ./serve.sh <目录>`），算法与 `--quantization fp8` 在线量化相同，每层一个缩放系数。视觉编码器、词嵌入和 lm_head 保持 BF16。
 - `tools/make_awq_dirs.py`：让官方 AWQ 版能在 vLLM 上加载（换回 BF16 的词嵌入、修正 config）。AWQ 在同一负载下测得 150.7 词元/秒，GSM8K 191/200。
 - `tools/wishbench.py`、`tools/gsm8k_eval.py`：上面数字所用的测速和测正确率脚本。
 

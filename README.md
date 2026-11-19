@@ -56,7 +56,7 @@ PY=/path/to/venv/bin/python ./serve.sh /models/SenseNova-Loop-9B-mtp
 
 ## Tools
 
-- `tools/export_fp8.py`: exports offline FP8 weights using the same algorithm as online `--quantization fp8` (per-tensor scale). The vision encoder, embeddings and lm_head stay BF16.
+- `tools/export_fp8.py`: exports offline FP8 weights (published as [igerry/SenseNova-Loop-9B-FP8](https://huggingface.co/igerry/SenseNova-Loop-9B-FP8); serve it with `QUANT= ./serve.sh <dir>`) using the same algorithm as online `--quantization fp8` (per-tensor scale). The vision encoder, embeddings and lm_head stay BF16.
 - `tools/make_awq_dirs.py`: makes the official AWQ release loadable in vLLM (BF16 embeddings, config fixes). AWQ reaches 150.7 tok/s on the same workload, GSM8K 191/200.
 - `tools/wishbench.py`, `tools/gsm8k_eval.py`: the throughput and accuracy scripts behind the numbers above.
 
