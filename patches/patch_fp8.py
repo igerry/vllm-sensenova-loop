@@ -12,12 +12,19 @@ else:
     assert s.count(old) == 1
     p.write_text(s.replace(old, new, 1)); print("patched", p)
 
-# 在线量化会新增 weight_scale / input_scale 等参数，checkpoint 里没有；Loop 的两处完整性检查要跳过它们
+# 量化会新增 checkpoint 里没有的参数：线性层的 weight_scale / input_scale（在线量化），
+# 以及离线 FP8 权重下注意力层的 k_scale / v_scale / q_scale / prob_scale（默认 1.0）。Loop 的两处完整性检查要跳过它们
+QS_OLD = '_QSCALE = ("weight_scale", "input_scale", "weight_scale_inv", "workspace")  # 21: 量化参数'
+QS_NEW = ('_QSCALE = ("weight_scale", "input_scale", "weight_scale_inv", "workspace",'
+          ' "k_scale", "v_scale", "q_scale", "prob_scale")  # 21: 量化参数')
 p = Path(sys.argv[1]) / "model_executor/models/sensenova_loop.py"
 s = p.read_text()
+if QS_OLD in s:  # 旧版补丁打过：只补上注意力的缩放参数
+    p.write_text(s.replace(QS_OLD, QS_NEW, 1)); print("upgraded _QSCALE", p)
+    s = p.read_text()
 if "_QSCALE" not in s:
     s = s.replace("class SenseNovaLoopMHCRouter(nn.Module):",
-                  "_QSCALE = (\"weight_scale\", \"input_scale\", \"weight_scale_inv\", \"workspace\")  # 21: 量化参数\n\n\nclass SenseNovaLoopMHCRouter(nn.Module):", 1)
+                  QS_NEW + "\n\n\nclass SenseNovaLoopMHCRouter(nn.Module):", 1)
     old1 = "        for name, _ in self.named_parameters():\n"
     assert s.count(old1) == 1
     s = s.replace(old1, "        for name, _ in self.named_parameters():\n            if name.endswith(_QSCALE):\n                continue\n", 1)
